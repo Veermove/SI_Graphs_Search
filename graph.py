@@ -20,15 +20,6 @@ class Node:
         self.y = float(y)
         self.edges = {}
 
-    def __str__(self) -> str:
-        return str(self.name) + ", " + str(self.x) + ", " + str(self.y)
-
-    def print_node(self):
-        print(str(self.name) + ", " + str(self.x) + ", " + str(self.y))
-        for (_, v) in self.edges.items():
-            print(v[0])
-
-
 def spawn_graph(data):
     nodes: dict[str, Node] = {}
     for ld in data:
@@ -54,7 +45,7 @@ def spawn_graph(data):
                                                      # start_stop
                                                      #  |    end_stop
                                                      #  |     |   connection data
-def sp_dijkstra(start, end, data, start_time) -> list[(str, str, dict)]:
+def sp_dijkstra(start, end, data, start_time, cost_function) -> list[(str, str, dict)]:
     # validate inputs
     if start not in data or end not in data:
         assert False, "Provided data is incorrect"
@@ -78,11 +69,17 @@ def sp_dijkstra(start, end, data, start_time) -> list[(str, str, dict)]:
             for (departure_time, connections) in departures.items():
                 if next_stop not in visited and time_diff(current_time, departure_time) >= 0:
 
-                    # prioritize not changing lines
-                    # changing lines is equalt to waiting 10 minutes
-                    line_changed_cost = 10 if connections['line'] != prev_line else 0
-
-                    alternative = dist[current_stop] + time_diff(current_time, departure_time) + line_changed_cost
+                    # calculate cost usinng provided cost function
+                    alternative = cost_function(
+                            end,
+                            current_stop,
+                            next_stop,
+                            current_time,
+                            departure_time,
+                            prev_line,
+                            dist[current_stop],
+                            data
+                        )
 
                     # add neighbour to (sorted) queue,
                     # compare using alternative cost
@@ -119,17 +116,58 @@ def time_diff(dep_time, arr_time):
     return ((int(at[0]) * 60) + int(at[1])) - ((int(dt[0]) * 60) + int(dt[1]))
 
 def print_path(path):
+    max_stop_name_len = pipe(
+        { stop_data[0] for stop_data in path },
+        lambda name_set: name_set.union({ stop_data[1] for stop_data in path }),
+        lambda names: map(lambda x: len(x), names),
+        max
+    )
+
     for k, f, v in path:
-        print(k.ljust(25), f.ljust(25), v['departure_time'], v['arrival_time'], v['line'])
+        print(k.ljust(max_stop_name_len), f.ljust(max_stop_name_len), v['departure_time'], v['arrival_time'], v['line'])
+
+def dijkstra_cost_function(_, current_stop, next_stop, current_time, departure_time, prev_line, current_best_distance, all_nodes):
+
+    current_line = all_nodes[current_stop].edges[next_stop][departure_time]['line']
+
+    # prioritize not changing lines
+    # changing lines is equal to waiting 10 minutes
+    line_changed_cost = 10 if current_line != prev_line else 0
+
+    return current_best_distance + time_diff(current_time, departure_time) + line_changed_cost
+
+def astar_cost_function(end_stop, current_stop, next_stop, current_time, departure_time, prev_line, current_best_distance, all_nodes):
+    basic_cost = dijkstra_cost_function(
+        end_stop, current_stop, next_stop,
+        current_time, departure_time,
+        prev_line,
+        current_best_distance,
+        all_nodes
+    )
+
+    manhatan_cost = abs(all_nodes[next_stop].x - all_nodes[end_stop].x) \
+                    + abs(all_nodes[next_stop].y - all_nodes[end_stop].y)
+
+    return manhatan_cost + basic_cost
 
 
 def main():
     data = read_file()
     graph = spawn_graph(data)
-    path = sp_dijkstra("GALERIA DOMINIKAŃSKA", "pl. Legionów", graph, "09:31:00")
-    # path = sp_dijkstra('PL. JANA PAWŁA II', 'GALERIA DOMINIKAŃSKA', graph, '08:46:00')
+    path = sp_dijkstra("GALERIA DOMINIKAŃSKA", "pl. Legionów", graph, "09:31:00", dijkstra_cost_function)
+    # path = sp_dijkstra('Mokronos Dolny - Parkowa/Stawowa', 'Psie Pole', graph, '08:46:00', dijkstra_cost_function)
+    # path = sp_dijkstra('Mokronos Dolny - Parkowa/Stawowa', 'Mirków - Sportowa', graph, '19:46:00', astar_cost_function)
     print_path(path)
 
+
+def pipe(start_value, *args):
+    if not args:
+        return start_value
+
+    v = start_value
+    for func in args:
+        v = func(v)
+    return v
 
 
 if __name__ == '__main__':
