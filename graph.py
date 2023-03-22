@@ -66,10 +66,10 @@ def sp_dijkstra(start, end, data, start_time, cost_function) -> list[(str, str, 
             break
 
         for (next_stop, departures) in data[current_stop].edges.items():
-            for (departure_time, connections) in departures.items():
+            for (departure_time, connection_info) in departures.items():
                 if next_stop not in visited and time_diff(current_time, departure_time) >= 0:
 
-                    # calculate cost usinng provided cost function
+                    # calculate cost using provided cost function
                     alternative = cost_function(
                             end,
                             current_stop,
@@ -85,14 +85,14 @@ def sp_dijkstra(start, end, data, start_time, cost_function) -> list[(str, str, 
                     # compare using alternative cost
                     bisect.insort_right(
                         queue,
-                        (next_stop, connections['arrival_time'], connections['line'], alternative),
+                        (next_stop, connection_info['arrival_time'], connection_info['line'], alternative),
                         key=lambda x: x[3]
                     )
 
                     # if current way is better than remembered
                     # remember this way
                     if alternative <= dist[next_stop]:
-                        prev[next_stop] = (current_stop, next_stop, connections)
+                        prev[next_stop] = (current_stop, next_stop, connection_info)
                         dist[next_stop] = alternative
 
         visited.add(current_stop)
@@ -134,7 +134,7 @@ def dijkstra_cost_function(_, current_stop, next_stop, current_time, departure_t
     # changing lines is equal to waiting 10 minutes
     line_changed_cost = 10 if current_line != prev_line else 0
 
-    return current_best_distance + time_diff(current_time, departure_time) + line_changed_cost
+    return current_best_distance + line_changed_cost + 0.1 * time_diff(current_time, departure_time)
 
 def astar_cost_function(end_stop, current_stop, next_stop, current_time, departure_time, prev_line, current_best_distance, all_nodes):
     basic_cost = dijkstra_cost_function(
@@ -154,9 +154,9 @@ def astar_cost_function(end_stop, current_stop, next_stop, current_time, departu
 def main():
     data = read_file()
     graph = spawn_graph(data)
-    path = sp_dijkstra("GALERIA DOMINIKAŃSKA", "pl. Legionów", graph, "09:31:00", dijkstra_cost_function)
-    # path = sp_dijkstra('Mokronos Dolny - Parkowa/Stawowa', 'Psie Pole', graph, '08:46:00', dijkstra_cost_function)
-    # path = sp_dijkstra('Mokronos Dolny - Parkowa/Stawowa', 'Mirków - Sportowa', graph, '19:46:00', astar_cost_function)
+    # path = sp_dijkstra("GALERIA DOMINIKAŃSKA", "pl. Legionów", graph, "09:31:00", dijkstra_cost_function)
+    # path = sp_dijkstra('Spółdzielcza', 'Psie Pole', graph, '14:30:00', dijkstra_cost_function)
+    path = sp_dijkstra('Spółdzielcza', 'Psie Pole', graph, '19:46:00', astar_cost_function)
     print_path(path)
 
 
