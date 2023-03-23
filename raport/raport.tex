@@ -1,0 +1,39 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{setspace}
+\usepackage{wrapfig}
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{amssymb}
+\usepackage{changepage}
+
+
+\title{Sztuczna inteligencja i inżynieria wiedzy, \\ Lista 1}
+\author{Tymoteusz Trętowicz, 260451}
+\date{}
+% \setcounter{tocdepth}{2}
+% \renewcommand{\contentsname}{Spis treści}
+
+\setstretch{1.1}
+
+\begin{document}
+    \maketitle
+    \pagebreak
+    \section*{Zadanie 1}
+    Przeprowadzone zostało 100 testów przy użyciu alogrytmu Dijkstry dla różnych kryteriów. Testy zostały podzielone na 4 grupy po 25 testów, wg. ilości przystankówm przez które muszą przejechać.
+    \begin{itemize}
+        \item $A \rightarrow B$
+        \item $A \rightarrow B \rightarrow C$
+        \item $A \rightarrow B \rightarrow C \rightarrow D$
+        \item $A \rightarrow B \rightarrow C \rightarrow D \rightarrow E$
+    \end{itemize}
+    \subsection*{Kryterium czasu}
+    Kryterium czasu jest rozumiane jako funkcja minimalizująca czas spędzony na przystanku czekając. Dla danego przystanku oraz odjeżdząjących z nich tramwajów (lub autobusów) jest ono liczone jako:$$C = t_{\text{godzina odjazdu z przystanku}} - t_{\text{teraz}}$$.
+
+
+
+\end{document}
