@@ -10,30 +10,100 @@
 \usepackage{caption}
 \usepackage{amssymb}
 \usepackage{changepage}
-
+\usepackage{listings}
 
 \title{Sztuczna inteligencja i inżynieria wiedzy, \\ Lista 1}
 \author{Tymoteusz Trętowicz, 260451}
 \date{}
-% \setcounter{tocdepth}{2}
-% \renewcommand{\contentsname}{Spis treści}
+
+\usepackage{xcolor}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
 
 \setstretch{1.1}
 
 \begin{document}
     \maketitle
     \pagebreak
+    \section*{Implementacjia}
+    Implementacja grafu opiera się na słowniku nazw przystanków do ich wartości.
+\begin{lstlisting}[language=Python]
+class Node:
+  def __init__(self, name, x, y):
+    self.name = name
+    self.x = float(x)
+    self.y = float(y)
+    self.edges = {}
+\end{lstlisting}
+
+    W każdym wierzchołku (obiekcie klasy Node) zapisujemy informacje o nazwie, wysokości i szerokości geograficznej, oraz o wychodzących z tego wierzchołka krawędziach (połączeniach do innych przystanków). \texttt{edges} jest strukturą danych w postaci zagnieżdżonych słowników: jest to mapa nazwy przystanku do mapy godzin odjazdu do tego przystanku do informacji o połączeniu. Przykładowo:
+    \begin{lstlisting}[language=Python]
+
+    graph['Rynek'].edges['Zamkowa']['12:52:30']
+    \end{lstlisting}
+    Jeżeli słownik obiektów kalsy Node nazywałby się \texttt{graph} to powyższe wyrażenie by zwróciło informacje o połączeniu z przystanku Rynek, do przystanku Zamkowa o godzinie 12:52:00. Te informacje to czas odjazdu z przystanku startowego, czas dojazdu do przystanku docelowego i nazwa lub numer lini.
+
+    \pagebreak
+    \subsubsection*{Algorytm Dijkstry}
+    \noindent
+    Zaimplementowany algorytm Dijkstry można przedstawić w postaci listy kroków:
+    dla przystanku początekowego, przystanku docelowego i godziny startowej:
+    \begin{enumerate}
+        \item Utwórz pustą kolejkę przystanków do odwiedzenia.
+        \item Dodaj przystanek początkowy, oraz godzinę znalezienia się na tym przystanku do kolejki.
+        \item Pobierz \emph{obecny przystanek}, oraz ścieżkę z przystanku początekowego do obecnego przystanku z początku kolejki oraz usuń ten element z kolejki.
+        \item Jeżeli \emph{obecny przystanek} jest przystnakiem końcowym zwróć scieżkę do obecnego przystanku.
+        \item Dla każdego połączenia wychodzącego z tego przystanku: \begin{enumerate}
+            \item Jeżeli godzina odjazdu do \textbf{następnego przystanku} już minęła, lub następny przystanek był już odwiedzony, pomiń to wychodzące połączenie.
+            \item Policz koszt tego połączenia jako: $$c_{\text{dojazdu do \textbf{następnego przystanku}}} = c_{\text{doajzdu do \emph{obecnego przystanku}}} + c_{\text{połączenia}}$$
+            \item Dodaj \textbf{następny przystanek} oraz to połączenie do kolejki przystnaków do odwiedzenia.
+            \item Jezeli policzony koszt jest niższy niż obecny zapamiętany zapamiętaj nowy koszt jako najniższy oraz obecną scieżkę do \textbf{następnego przystanku}.
+        \end{enumerate}
+        \item Oznacz \emph{obecny przystanek} jako odwiedzony i wróć do punktu 3.
+    \end{enumerate}
+    Implementacja alogrytmu poza wymienionymi paramterami akceptuje jeszcze funkcję kosztu $f$ taką, że $$f(\text{obecny przystanek, następny przystanek, ...}) = c_{\text{połączenia}}$$:
     \section*{Zadanie 1}
-    Przeprowadzone zostało 100 testów przy użyciu alogrytmu Dijkstry dla różnych kryteriów. Testy zostały podzielone na 4 grupy po 25 testów, wg. ilości przystankówm przez które muszą przejechać.
+    Przeprowadzone zostało 100 testów przy użyciu alogrytmu Dijkstry dla różnych kryteriów. Testy zostały podzielone na 4 grupy po 25 testów, wg. ilości przystankówm przez które muszą przejechać. Odpowiednio:
     \begin{itemize}
         \item $A \rightarrow B$
         \item $A \rightarrow B \rightarrow C$
         \item $A \rightarrow B \rightarrow C \rightarrow D$
         \item $A \rightarrow B \rightarrow C \rightarrow D \rightarrow E$
     \end{itemize}
-    \subsection*{Kryterium czasu}
-    Kryterium czasu jest rozumiane jako funkcja minimalizująca czas spędzony na przystanku czekając. Dla danego przystanku oraz odjeżdząjących z nich tramwajów (lub autobusów) jest ono liczone jako:$$C = t_{\text{godzina odjazdu z przystanku}} - t_{\text{teraz}}$$.
-
-
+    \subsection*{Kryteria}
+    \subsubsection*{Kryetium czasu}
+    Kryterium czasu jest rozumiane jako funkcja minimalizująca czas spędzony na przystanku czekając. Dla danego przystanku oraz odjeżdząjących z nich tramwajów (lub autobusów) jest ono liczone jako:$$c_{\text{połączenia}} = t_{\text{godzina odjazdu z przystanku}} - t_{\text{teraz}}$$.
+    \subsubsection*{Kryetium przesiadek}
+    Kryetium przesiadek jest rozumiane jako funkcja minimalizująca ilość przesiadek na połączeniu od przytanku startowego do przystanku końcowego mając nadal na uwadze kryetium czasu:
+    \begin{align*}
+        c_{\text{połączenia}}  &= 10 \cdot i_{\text{ilość przysiadek}} + 0.3 \cdot  c_{\text{kryetium czasu}}\\
+        &= 10 \cdot i_{\text{ilość przysiadek}} + 0.3 \cdot  (t_{\text{godzina odjazdu z przystanku}} - t_{\text{teraz}})\\
+    \end{align*}
+    Kryterium przesiadek uwzględnia kryterium czasu z wagą $0.3$ (arbitralny wybór). Jeżeli waga dla kryterium czasu byłaby równa $1$, znaczyłoby to że przesiadka na inną linię jest równoważna z czekaniem 10 minut na przystanku.
 
 \end{document}

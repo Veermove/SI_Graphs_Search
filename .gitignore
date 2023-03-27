@@ -4,3 +4,5 @@ __pycache__
 *.fls
 *.log
 *.synctex.gz
+*.~lock.results.csv#
+*.csv

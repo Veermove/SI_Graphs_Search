@@ -104,7 +104,6 @@ def sp_dijkstra(start, end, data, start_time, cost_function) -> list[(str, str, 
                     # if current way is better than remembered
                     # remember this way
                     if alternative <= dist[next_stop]:
-
                         prev[next_stop] = current_path + [(current_stop, current_time, prev_line, connection_info)]
                         dist[next_stop] = alternative
 
