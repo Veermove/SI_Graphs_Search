@@ -86,15 +86,7 @@ class Node:
         \end{enumerate}
         \item Oznacz \emph{obecny przystanek} jako odwiedzony i wróć do punktu 3.
     \end{enumerate}
-    Implementacja alogrytmu poza wymienionymi paramterami akceptuje jeszcze funkcję kosztu $f$ taką, że $$f(\text{obecny przystanek, następny przystanek, ...}) = c_{\text{połączenia}}$$:
-    \section*{Zadanie 1}
-    Przeprowadzone zostało 100 testów przy użyciu alogrytmu Dijkstry dla różnych kryteriów. Testy zostały podzielone na 4 grupy po 25 testów, wg. ilości przystankówm przez które muszą przejechać. Odpowiednio:
-    \begin{itemize}
-        \item $A \rightarrow B$
-        \item $A \rightarrow B \rightarrow C$
-        \item $A \rightarrow B \rightarrow C \rightarrow D$
-        \item $A \rightarrow B \rightarrow C \rightarrow D \rightarrow E$
-    \end{itemize}
+    Implementacja alogrytmu poza wymienionymi paramterami akceptuje jeszcze funkcję kosztu $f$ taką, że $$f(\text{obecny przystanek, następny przystanek, ...}) = c_{\text{połączenia}}$$
     \subsection*{Kryteria}
     \subsubsection*{Kryetium czasu}
     Kryterium czasu jest rozumiane jako funkcja minimalizująca czas spędzony na przystanku czekając. Dla danego przystanku oraz odjeżdząjących z nich tramwajów (lub autobusów) jest ono liczone jako:$$c_{\text{połączenia}} = t_{\text{godzina odjazdu z przystanku}} - t_{\text{teraz}}$$.
@@ -105,5 +97,80 @@ class Node:
         &= 10 \cdot i_{\text{ilość przysiadek}} + 0.3 \cdot  (t_{\text{godzina odjazdu z przystanku}} - t_{\text{teraz}})\\
     \end{align*}
     Kryterium przesiadek uwzględnia kryterium czasu z wagą $0.3$ (arbitralny wybór). Jeżeli waga dla kryterium czasu byłaby równa $1$, znaczyłoby to że przesiadka na inną linię jest równoważna z czekaniem 10 minut na przystanku.
+    \subsubsection*{Kryterium czasu z heurytyką odległości Manhattan}
+    Kryerium czasu wzbogacone o heurystyke odległości Manhattan stara się zminimalizować czas przejazdu, mając na uwadzę, jak zmienia się oldegłość od naszego celu z danego przystanku. Jest ono wyliczane jako:
+    \begin{align*}
+        c_{\text{połączenia}} =& K_{\text{odległość Manhattan}} + \frac{c_{\text{kryterium czasu}}}{2}\\
+        =& \text{ } |p_{\text{szerokość obecnego przystanku}} - p_{\text{szerokość końcowego przystanku}} |\\
+        & + |p_{\text{długość obecnego przystanku}} - p_{\text{długość końcowego przystanku}} | \\
+        & + \frac{c_{\text{kryterium czasu}}}{2}
+    \end{align*}
+    Tutaj oldegłość Manhattan jest liczona jako suma wartości bezwzględnej różnicy odpowiednio szerokości i długości geograficznej przystanku obecnego i przystanku docelowego.
+    \subsubsection*{Kryterium czsu i przesiadek z heurytyką odległości Manhattan}
+    Kryerium czasu i przesiadek z heurytyką odległości Manhattan jest liczone wykorzystując wyżej zdefiniowane kryteria:
+    $$c_{\text{połączenia}} = K_{\text{odległość Manhattan}} + \frac{c_{\text{kryterium przesiadek}}}{2}$$
+    \subsection*{Przykład}
+    Przykładowe wywołanie oraz użycie implementacji:
+\begin{lstlisting}[language=Python]
+    START = "Grota-Roweckiego"
+    STOP = "most Grunwaldzki"
+    TIME = "17:27:00"
 
+    pipe("./connection_graph.csv",
+        read_file,
+        spawn_graph,
+        lambda graph: measure_time(lambda:
+            shortest_path(graph,
+                          [START, STOP],
+                          TIME,
+                          cost_time_dist)
+        ),
+        print_path
+    )
+\end{lstlisting}
+
+    Powyższy fragment kodu, odczytuje dane z pliku \texttt{connection\_graph.csv} z lokalnego folderu, tworzy na ich podstawie graf, oraz uruchamia funkcję znajdującą najkrótszą ścieżkę. Przystanek startowy został ustawiony jako Grota-Roweckiego, przystanek docelowy to most Grunwaldzki. Czas startowy to 17:27:00. Funkcja \texttt{shortest\_path} akceptuje również funkcję kosztu jako paramter. Tutaj została podana funkcja licząca koszt wg. kryterium czasu z heurytyką odległości Manhattan.
+
+    Wynikiem takiego wywołania jest:
+
+    TIME USED:  0.071726044989191
+
+% \begin{center}
+\noindent
+\begin{adjustwidth}{-40pt}{100pt}
+\begin{tabular}{ |c|c|c|c|c| }
+\hline
+Przystanek początkowy & Przystanek końcowy &Odjazd&Przyjazd&Linia\\
+\hline
+Grota-Roweckiego & Gałczyńskiego & 17:29:00 & 17:31:00 & 113\\
+Gałczyńskiego & Oboźna & 17:31:00 & 17:32:00 & 113 \\
+Oboźna & Parafialna & 17:32:00 & 17:33:00 & 113 \\
+Parafialna & Wojszyce & 17:33:00 & 17:34:00 & 113 \\
+Wojszyce & Przystankowa & 17:34:00 & 17:36:00 & 113 \\
+Przystankowa & Borowska (Szpital) & 17:36:00 & 17:37:00 & 113 \\
+Borowska (Szpital) & Działkowa & 17:37:00 & 17:39:00 & 113 \\
+Działkowa & ROD Bajki & 17:39:00 & 17:41:00 & 143 \\
+ROD Bajki & Śliczna & 17:41:00 & 17:42:00 & 143 \\
+Śliczna & Borowska & 17:42:00 & 17:44:00 & 113 \\
+Borowska & DWORZEC AUTOBUSOWY & 17:44:00 & 17:47:00 & 113 \\
+DWORZEC AUTOBUSOWY & DWORZEC GŁÓWNY & 17:47:00 & 17:50:00 & 113 \\
+DWORZEC GŁÓWNY & Pułaskiego & 17:50:00 & 17:52:00 & 70 \\
+Pułaskiego & Kościuszki & 17:52:00 & 17:54:00 & 70 \\
+Kościuszki & Komuny Paryskiej & 17:55:00 & 17:56:00 & 70 \\
+Komuny Paryskiej & pl. Wróblewskiego & 17:56:00 & 17:58:00 & 70 \\
+pl. Wróblewskiego & Urząd Wojewódzki (Impart) & 17:58:00 & 18:01:00 & 70 \\
+Urząd Wojewódzki (Impart & most Grunwaldzki & 18:01:00 & 18:02:00 & 70 \\
+\hline
+\end{tabular}
+\end{adjustwidth}
+% \end{center}
+
+    \section*{Zadanie 1}
+    Przeprowadzone zostało 100 testów przy użyciu alogrytmu Dijkstry dla różnych kryteriów. Testy zostały podzielone na 4 grupy po 25 testów, wg. ilości przystankówm przez które muszą przejechać. Odpowiednio:
+    \begin{itemize}
+        \item $A \rightarrow B$
+        \item $A \rightarrow B \rightarrow C$
+        \item $A \rightarrow B \rightarrow C \rightarrow D$
+        \item $A \rightarrow B \rightarrow C \rightarrow D \rightarrow E$
+    \end{itemize}
 \end{document}

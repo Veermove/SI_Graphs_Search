@@ -137,7 +137,9 @@ def analyze_path(start_time, path, time):
     return path, time
 
 
-def print_path(path):
+def print_path(path_time):
+    path = path_time[0]
+    print("TIME USED: ", path_time[1])
     if not path:
         return path
     max_stop_name_len = pipe(

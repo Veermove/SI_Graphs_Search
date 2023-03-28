@@ -11,6 +11,13 @@ def cost_time_switch(_, current_stop, next_stop, current_time, departure_time, p
 
     return line_changed_cost + 0.3 * cost_time(_, current_stop, next_stop, current_time, departure_time, prev_line, all_nodes)
 
+def cost_time_dist(end_stop, current_stop, next_stop, current_time, departure_time, prev_line, all_nodes):
+    manhatan_cost = abs(all_nodes[next_stop].x - all_nodes[end_stop].x) \
+                    + abs(all_nodes[next_stop].y - all_nodes[end_stop].y)
+
+    return manhatan_cost + 0.5 * cost_time(end_stop, current_stop, next_stop, current_time, departure_time, prev_line, all_nodes)
+
+
 def cost_time_switch_dist(end_stop, current_stop, next_stop, current_time, departure_time, prev_line, all_nodes):
     basic_cost = cost_time_switch(
         end_stop, current_stop, next_stop,
